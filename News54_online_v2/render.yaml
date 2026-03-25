@@ -10,31 +10,6 @@ services:
         generateValue: true
       - key: DEBUG
         value: false
-      - key: ALLOWED_HOSTS
-        value: news54-web.onrender.com
-      - key: CSRF_TRUSTED_ORIGINS
-        value: https://news54-web.onrender.com
-      - key: DATABASE_URL
-        fromDatabase:
-          name: news54-db
-          property: connectionString
-
-  - type: cron
-    name: news54-fetcher
-    env: python
-    plan: starter
-    buildCommand: pip install -r requirements.txt
-    startCommand: python manage.py fetch_news
-    schedule: "*/30 * * * *"
-    envVars:
-      - key: DJANGO_SECRET_KEY
-        generateValue: true
-      - key: DEBUG
-        value: false
-      - key: ALLOWED_HOSTS
-        value: news54-web.onrender.com
-      - key: CSRF_TRUSTED_ORIGINS
-        value: https://news54-web.onrender.com
       - key: DATABASE_URL
         fromDatabase:
           name: news54-db
