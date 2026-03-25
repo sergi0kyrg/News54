@@ -3,8 +3,8 @@ services:
     name: news54-web
     env: python
     plan: free
-    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
-    startCommand: gunicorn news_aggregator.wsgi:application --bind 0.0.0.0:$PORT
+    buildCommand: pip install -r News54/requirements.txt && python News54/manage.py collectstatic --noinput
+    startCommand: gunicorn News54.news_aggregator.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: DJANGO_SECRET_KEY
         generateValue: true
