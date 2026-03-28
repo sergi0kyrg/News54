@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block title %}News54 — Главные новости{% endblock %}
+
+{% block content %}
+<section class="hero glass-card">
+    <div class="hero-copy">
+        <span class="badge">News54 online</span>
+        <h1>Главные новости региона — в одном современном интерфейсе</h1>
+        <p class="lead">Сервис автоматически собирает публикации из региональных источников, помогает быстро найти важные темы через поиск и позволяет отфильтровать ленту по категориям, источникам и дате публикации.</p>
+
+        <div class="hero-stats">
+            <div class="stat-card">
+                <strong>{{ page_obj.paginator.count }}</strong>
+                <span>новостей в базе</span>
+            </div>
+            <div class="stat-card">
+                <strong>{{ sources|length }}</strong>
+                <span>активных источников</span>
+            </div>
+            <div class="stat-card">
+                <strong>{{ categories|length }}</strong>
+                <span>категорий</span>
+            </div>
+        </div>
+    </div>
+
+    <aside class="hero-panel">
+        <div class="panel-item">
+            <span>Поиск</span>
+            <strong>Быстрый доступ</strong>
+            <p>Ищи новости по ключевым словам, например: дороги, мэрия, спорт, погода, метро.</p>
+        </div>
+        <div class="panel-item">
+            <span>Фильтрация</span>
+            <strong>Категории и СМИ</strong>
+            <p>Удобно выделять нужные темы и конкретные региональные источники.</p>
+        </div>
+        <div class="panel-item">
+            <span>Внешний вид</span>
+            <strong>Светлая и тёмная тема</strong>
+            <p>Оформление переключается одной кнопкой и сохраняется в браузере.</p>
+        </div>
+    </aside>
+</section>
+
+<section class="quick-bar glass-card">
+    <div>
+        <p class="section-kicker">Быстрая навигация</p>
+        <h2>Популярные категории</h2>
+    </div>
+    <div class="quick-chips">
+        <a class="quick-chip {% if not selected_category %}is-active{% endif %}" href="/?q={{ query }}&source={{ selected_source }}&sort={{ sort }}">Все новости</a>
+        {% for cat in categories|slice:':8' %}
+            <a class="quick-chip {% if selected_category == cat.slug %}is-active{% endif %}" href="/?q={{ query }}&category={{ cat.slug }}&source={{ selected_source }}&sort={{ sort }}">{{ cat.name }}</a>
+        {% endfor %}
+    </div>
+</section>
+
+<form method="get" id="filters" class="filters glass-card">
+    <div class="field search-box field-wide">
+        <label for="search-input">Поиск по новостям</label>
+        <input id="search-input" type="text" name="q" value="{{ query }}" placeholder="Например: метро, ДТП, мэрия, хоккей, ремонт дорог">
+    </div>
+
+    <div class="field">
+        <label for="category-select">Категория</label>
+        <select id="category-select" name="category">
+            <option value="">Все категории</option>
+            {% for cat in categories %}
+                <option value="{{ cat.slug }}" {% if selected_category == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="field">
+        <label for="source-select">Источник</label>
+        <select id="source-select" name="source">
+            <option value="">Все источники</option>
+            {% for src in sources %}
+                <option value="{{ src.id }}" {% if selected_source == src.id|stringformat:'s' %}selected{% endif %}>{{ src.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="field">
+        <label for="sort-select">Сортировка</label>
+        <select id="sort-select" name="sort">
+            <option value="new" {% if sort == 'new' %}selected{% endif %}>Сначала новые</option>
+            <option value="old" {% if sort == 'old' %}selected{% endif %}>Сначала старые</option>
+        </select>
+    </div>
+
+    <div class="filter-actions">
+        <button type="submit" class="primary-btn">Применить</button>
+        <a href="/" class="secondary-btn">Сбросить</a>
+    </div>
+</form>
+
+<section class="feed-head" id="news-feed">
+    <div>
+        <p class="section-kicker">Лента</p>
+        <h2>Свежие публикации</h2>
+    </div>
+    <p class="feed-note">
+        {% if query or selected_category or selected_source %}
+            Показаны результаты по выбранным фильтрам и поисковому запросу.
+        {% else %}
+            Показаны все актуальные новости, доступные в базе данных.
+        {% endif %}
+    </p>
+</section>
+
+<section class="news-grid">
+    {% for item in page_obj %}
+        <article class="news-card glass-card">
+            {% if item.image_url %}
+                <a href="{% url 'news_detail' item.slug %}" class="news-cover-wrap">
+                    <img class="news-cover" src="{{ item.image_url }}" alt="{{ item.title }}">
+                </a>
+            {% else %}
+                <a href="{% url 'news_detail' item.slug %}" class="news-cover-wrap news-cover-fallback">
+                    <span>{{ item.source.name }}</span>
+                    {% if item.category %}<small>{{ item.category.name }}</small>{% endif %}
+                </a>
+            {% endif %}
+
+            <div class="news-body">
+                <div class="news-meta">
+                    <span class="chip">{{ item.source.name }}</span>
+                    {% if item.category %}<span class="chip chip-soft">{{ item.category.name }}</span>{% endif %}
+                </div>
+
+                <h3><a href="{% url 'news_detail' item.slug %}">{{ item.title }}</a></h3>
+                <p class="summary">{{ item.summary|default:item.content|truncatechars:190 }}</p>
+
+                <div class="news-footer">
+                    <time>{{ item.published_at|date:'d.m.Y H:i' }}</time>
+                    <a class="read-more" href="{% url 'news_detail' item.slug %}">Подробнее →</a>
+                </div>
+            </div>
+        </article>
+    {% empty %}
+        <div class="empty-state glass-card">
+            <h3>Новости не найдены</h3>
+            <p>Измени фильтры, очисти поиск или обнови базу командой <code>python manage.py fetch_news</code>.</p>
+        </div>
+    {% endfor %}
+</section>
+
+{% if page_obj.paginator.num_pages > 1 %}
+<nav class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}&category={{ selected_category }}&source={{ selected_source }}&sort={{ sort }}">← Назад</a>
+    {% else %}
+        <span></span>
+    {% endif %}
+    <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&q={{ query }}&category={{ selected_category }}&source={{ selected_source }}&sort={{ sort }}">Вперёд →</a>
+    {% else %}
+        <span></span>
+    {% endif %}
+</nav>
+{% endif %}
+{% endblock %}
